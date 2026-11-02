@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.DS_Store
+Thumbs.db
+# projects made by the skill (they hold your video, its cutout and renders)
+*-cartoonify/

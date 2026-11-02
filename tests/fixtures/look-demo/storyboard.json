@@ -1,0 +1,243 @@
+{
+  "project": "LookDemo",
+  "title": "Look picker demo",
+  "version": 1,
+  "length": 5.58,
+  "meta": "2 beats · 1 setup · music: sample track",
+  "stand_in": "These frames are generated placeholders, only to show the format. In real use, each “Planned edit” frame is a still image of the planned visual. The buttons work: your clicks are saved.",
+  "changes": [],
+  "needs": [],
+  "music": [
+    {
+      "t": 0.0,
+      "what": "starts"
+    }
+  ],
+  "kinds": {
+    "th": "you on camera",
+    "card": "window on screen"
+  },
+  "beats": [
+    {
+      "id": "L01",
+      "start": 0.0,
+      "end": 2.38,
+      "estimated": false,
+      "line": "Salt your pasta water. Really.",
+      "keys": [
+        "Salt"
+      ],
+      "shot": {
+        "kind": "th",
+        "name": "Kitchen",
+        "label": "Standing in the kitchen"
+      },
+      "moments": [
+        {
+          "t": 1.95,
+          "caption": "From the first word: a title card behind you, zoom 1.0x → 1.28x",
+          "plan": "frames/L01-plan-1.jpg",
+          "take": "frames/L01-orig-1.jpg"
+        }
+      ],
+      "what": [
+        "Typed title behind your head: “salt your / pasta water” (you cut out in front)",
+        "Hook zoom from 1.0x to 1.28x during the line",
+        "“Salt” in yellow in the caption"
+      ],
+      "sound": [],
+      "music": "The sample track starts on the first frame, under the voice",
+      "ref": {
+        "src": "refs/L01-ref.jpg",
+        "why": "Title behind the head, as in the reference"
+      },
+      "ref_none": "",
+      "alerts": [
+        "No sound effect: the title is typed with no keyboard sound"
+      ]
+    },
+    {
+      "id": "L02",
+      "start": 2.38,
+      "end": 5.58,
+      "estimated": false,
+      "line": "Taste as you go. Every sauce, every soup, every stew.",
+      "keys": [
+        "sauce",
+        "soup",
+        "stew"
+      ],
+      "shot": {
+        "kind": "th",
+        "name": "Kitchen",
+        "label": "Standing in the kitchen"
+      },
+      "moments": [
+        {
+          "t": 3.05,
+          "caption": "On “Taste”: a soft glow lights the frame",
+          "plan": "frames/L02-plan-1.jpg",
+          "take": "frames/L02-orig-1.jpg"
+        },
+        {
+          "t": 5.35,
+          "caption": "On “stew”: a burst of light and a 4% push",
+          "plan": "frames/L02-plan-2.jpg",
+          "take": "frames/L02-orig-2.jpg"
+        }
+      ],
+      "what": [
+        "Soft glow lights up on “Taste”",
+        "A light band passes on “Every”, on the music beat",
+        "A light burst on “stew”, with a 4% push",
+        "“sauce”, “soup” and “stew” in yellow"
+      ],
+      "sound": [
+        "tick on “Taste”",
+        "light whoosh on the band",
+        "whoosh on “stew”"
+      ],
+      "music": "Keeps going; the light band lands on the beat",
+      "ref": null,
+      "ref_none": "No reference: this look was picked from the options",
+      "alerts": []
+    }
+  ],
+  "look": {
+    "intro": "Each option is your own room, redrawn, at 0:03.2.",
+    "doodles": [
+      {
+        "id": "D1",
+        "name": "Creator studio",
+        "blurb": "Hand-drawn creator studio with thick outlines.",
+        "thumb": "frames/look-D1.jpg"
+      },
+      {
+        "id": "D2",
+        "name": "Cozy loft",
+        "blurb": "Hand-drawn cozy loft with thick outlines.",
+        "thumb": "frames/look-D2.jpg"
+      },
+      {
+        "id": "D3",
+        "name": "Neon arcade",
+        "blurb": "Hand-drawn neon arcade with thick outlines.",
+        "thumb": "frames/look-D3.jpg"
+      },
+      {
+        "id": "D4",
+        "name": "Paper garden",
+        "blurb": "Hand-drawn paper garden with thick outlines.",
+        "thumb": "frames/look-D4.jpg"
+      },
+      {
+        "id": "D5",
+        "name": "Blueprint lab",
+        "blurb": "Hand-drawn blueprint lab with thick outlines.",
+        "thumb": "frames/look-D5.jpg"
+      },
+      {
+        "id": "D6",
+        "name": "Sunset rooftop",
+        "blurb": "Hand-drawn sunset rooftop with thick outlines.",
+        "thumb": "frames/look-D6.jpg"
+      },
+      {
+        "id": "D7",
+        "name": "Greenhouse",
+        "blurb": "Hand-drawn greenhouse with thick outlines.",
+        "thumb": "frames/look-D7.jpg"
+      },
+      {
+        "id": "D8",
+        "name": "Retro diner",
+        "blurb": "Hand-drawn retro diner with thick outlines.",
+        "thumb": "frames/look-D8.jpg"
+      },
+      {
+        "id": "D9",
+        "name": "Space cabin",
+        "blurb": "Hand-drawn space cabin with thick outlines.",
+        "thumb": "frames/look-D9.jpg"
+      },
+      {
+        "id": "D10",
+        "name": "Sketchbook desk",
+        "blurb": "Hand-drawn sketchbook desk with thick outlines.",
+        "thumb": "frames/look-D10.jpg"
+      }
+    ],
+    "types": [
+      {
+        "id": "T1",
+        "name": "Condensed poster",
+        "blurb": "Captions set in condensed poster.",
+        "thumb": "frames/look-T1.jpg"
+      },
+      {
+        "id": "T2",
+        "name": "Marker hand-lettering",
+        "blurb": "Captions set in marker hand-lettering.",
+        "thumb": "frames/look-T2.jpg"
+      },
+      {
+        "id": "T3",
+        "name": "Bubble 3D",
+        "blurb": "Captions set in bubble 3d.",
+        "thumb": "frames/look-T3.jpg"
+      },
+      {
+        "id": "T4",
+        "name": "Typewriter",
+        "blurb": "Captions set in typewriter.",
+        "thumb": "frames/look-T4.jpg"
+      },
+      {
+        "id": "T5",
+        "name": "Brush script",
+        "blurb": "Captions set in brush script.",
+        "thumb": "frames/look-T5.jpg"
+      },
+      {
+        "id": "T6",
+        "name": "Stencil block",
+        "blurb": "Captions set in stencil block.",
+        "thumb": "frames/look-T6.jpg"
+      },
+      {
+        "id": "T7",
+        "name": "Chalkboard",
+        "blurb": "Captions set in chalkboard.",
+        "thumb": "frames/look-T7.jpg"
+      },
+      {
+        "id": "T8",
+        "name": "Retro neon",
+        "blurb": "Captions set in retro neon.",
+        "thumb": "frames/look-T8.jpg"
+      },
+      {
+        "id": "T9",
+        "name": "Clean grotesk",
+        "blurb": "Captions set in clean grotesk.",
+        "thumb": "frames/look-T9.jpg"
+      },
+      {
+        "id": "T10",
+        "name": "Cut-out ransom",
+        "blurb": "Captions set in cut-out ransom.",
+        "thumb": "frames/look-T10.jpg"
+      }
+    ],
+    "recommended": {
+      "doodle": "D5",
+      "type": "T3",
+      "why": "Blueprint lines keep the room readable behind the face, and the bubble letters stay legible on a phone."
+    },
+    "current": {
+      "doodle": "D2",
+      "type": "T3",
+      "custom": ""
+    }
+  }
+}

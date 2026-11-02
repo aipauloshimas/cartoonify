@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storyboard · LookDemo v1</title>
+<script>try{var t=localStorage.getItem('sb-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="page.css">
+</head>
+<body data-version="1" data-total="2">
+<header class="top">
+  <div class="brand"><span class="wordmark">Storyboard</span><span class="proj">LookDemo</span><span class="ver">v1</span></div>
+  <nav class="film" aria-label="Beats"><a class="seg" href="#b-L01" data-beat="L01" style="flex:2.38 1 0" title="01 · 0:00.0"><span>01</span></a><a class="seg" href="#b-L02" data-beat="L02" style="flex:3.20 1 0" title="02 · 0:02.4"><span>02</span></a><i class="mtick" style="left:0.00%" title="0:00.0 starts"></i></nav>
+  <div class="tools">
+    <span class="status" id="status" aria-live="polite"></span>
+    <a class="progress" href="#wrap" title="Go to Done"><b id="n-ok">0</b><span>/2 approved</span></a>
+    <div class="filter" role="group" aria-label="Show">
+      <button type="button" data-f="all" class="is-on">All</button><button type="button" data-f="todo">To review</button><button type="button" data-f="chg">Changes</button>
+    </div>
+    <button type="button" class="theme" id="theme" aria-label="Switch light or dark"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+  </div>
+</header>
+<main>
+  <section class="intro">
+    <p class="kicker">LookDemo · v1 · 5.6 s · 2 beats</p>
+    <h1>Look picker demo</h1>
+    <p class="meta">2 beats · 1 setup · music: sample track</p>
+    <p class="how">Approve or change each beat, then click <b>Done</b> at the end: your review goes straight to Claude.
+      <span class="keys"><kbd>A</kbd> approve <kbd>C</kbd> change <kbd>O</kbd> original take <kbd>J</kbd><kbd>K</kbd> next and previous</span><br>
+      Nothing gets edited before the whole storyboard is approved, and nothing gets rendered before your <b>render</b>.</p>
+    <aside class="proto"><b>Prototype</b><span>These frames are generated placeholders, only to show the format. In real use, each “Planned edit” frame is a still image of the planned visual. The buttons work: your clicks are saved.</span></aside>
+  </section>
+  <section class="overview">
+    <div class="panel"><h2>What changed in v1</h2><ul><li class="quiet">First version.</li></ul></div>
+    <div class="panel"><h2>Still missing</h2><ul><li class="quiet">Nothing. All the material is in.</li></ul></div>
+    <div class="panel panel-checks"><h2>Checks <span class="badge">1</span></h2><ul><li><span>No sound effect: the title is typed with no keyboard sound</span><span class="jumps"><a href="#b-L01">01</a></span></li></ul></div>
+  </section>
+  <section class="timeline" aria-label="Timeline"><div class="label-row"><h2>Timeline</h2><div class="legend"><span><i class="sw k-th"></i>you on camera</span><span><i class="sw k-card"></i>window on screen</span><span><i class="sw sw-music"></i>music</span></div></div><div class="tl-track"><a class="tl-blk k-th" href="#b-L01" data-beat="L01" style="flex:2.38 1 0"><b>01</b><em>Kitchen</em></a><a class="tl-blk k-th" href="#b-L02" data-beat="L02" style="flex:3.20 1 0"><b>02</b><em>Kitchen</em></a></div><div class="tl-marks"><span class="tl-mark" style="left:0.00%"><i></i><em>0:00.0 · starts</em></span></div></section>
+  <section class="beats" id="beats">
+<article class="beat" id="b-L01" data-beat="L01" data-n="01">
+  <div class="beat-num" aria-hidden="true">01</div>
+  <div class="beat-media"><div class="seq seq-1"><figure class="mo" data-i="0"><div class="mo-frame"><img class="mo-plan" src="frames/L01-plan-1.jpg" alt="Planned edit at 0:01.9"><img class="mo-take" src="frames/L01-orig-1.jpg" alt="Original take at 0:01.9" loading="lazy"><span class="mo-tag">Original take</span></div><figcaption><span class="mo-tc">0:01.9</span>From the first word: a title card behind you, zoom 1.0x → 1.28x</figcaption></figure><span class="stamp stamp-ok">Approved</span><span class="stamp stamp-chg">Change</span></div><div class="view" role="group" aria-label="Show"><button type="button" data-v="plan" class="is-on">Planned edit</button><button type="button" data-v="take">Original take</button></div></div>
+  <div class="beat-body">
+   <div class="beat-text">
+    <div class="beat-head">
+      <span class="tc">0:00.0 to 0:02.4</span><span class="sep">/</span><span class="tc">2.4 s</span>
+      <span class="setup"><i class="sw k-th"></i>Standing in the kitchen</span>
+    </div>
+    <blockquote class="line"><mark>Salt</mark> your pasta water. Really.</blockquote>
+    <ul class="what"><li>Typed title behind your head: “salt your / pasta water” (you cut out in front)</li><li>Hook zoom from 1.0x to 1.28x during the line</li><li>“Salt” in yellow in the caption</li></ul>
+    <dl class="meta">
+      <div><dt>Sound</dt><dd><span class="quiet">no sound effects</span></dd></div>
+      <div><dt>Music</dt><dd>The sample track starts on the first frame, under the voice</dd></div>
+      <div><dt>Reference</dt><dd class="ref"><button type="button" class="ref-thumb" data-src="refs/L01-ref.jpg" data-label="Reference"><img src="refs/L01-ref.jpg" alt="reference" loading="lazy"></button><span>Title behind the head, as in the reference</span></dd></div>
+    </dl>
+    <p class="flag"><i>!</i>No sound effect: the title is typed with no keyboard sound</p>
+    <div class="note"><textarea rows="3" placeholder="What should change? For example: make the flare softer."></textarea></div>
+   </div>
+    <div class="actions">
+      <button type="button" class="act ok" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.6 3.6 7.4-8.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Approve</span><kbd>A</kbd></button>
+      <button type="button" class="act chg" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.6 3.6l2.8 2.8-8.9 8.9-3.6.8.8-3.6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span>Change</span><kbd>C</kbd></button>
+      <span class="saved-tick" aria-live="polite"></span>
+    </div>
+  </div>
+</article>
+<article class="beat" id="b-L02" data-beat="L02" data-n="02">
+  <div class="beat-num" aria-hidden="true">02</div>
+  <div class="beat-media"><div class="seq seq-2"><figure class="mo" data-i="0"><div class="mo-frame"><img class="mo-plan" src="frames/L02-plan-1.jpg" alt="Planned edit at 0:03.0"><img class="mo-take" src="frames/L02-orig-1.jpg" alt="Original take at 0:03.0" loading="lazy"><span class="mo-step">1</span><span class="mo-tag">Original take</span></div><figcaption><span class="mo-tc">0:03.0</span>On “Taste”: a soft glow lights the frame</figcaption></figure><span class="mo-arrow" aria-hidden="true">→</span><figure class="mo" data-i="1"><div class="mo-frame"><img class="mo-plan" src="frames/L02-plan-2.jpg" alt="Planned edit at 0:05.3"><img class="mo-take" src="frames/L02-orig-2.jpg" alt="Original take at 0:05.3" loading="lazy"><span class="mo-step">2</span><span class="mo-tag">Original take</span></div><figcaption><span class="mo-tc">0:05.3</span>On “stew”: a burst of light and a 4% push</figcaption></figure><span class="stamp stamp-ok">Approved</span><span class="stamp stamp-chg">Change</span></div><div class="view" role="group" aria-label="Show"><button type="button" data-v="plan" class="is-on">Planned edit</button><button type="button" data-v="take">Original take</button></div></div>
+  <div class="beat-body">
+   <div class="beat-text">
+    <div class="beat-head">
+      <span class="tc">0:02.4 to 0:05.6</span><span class="sep">/</span><span class="tc">3.2 s</span>
+      <span class="setup"><i class="sw k-th"></i>Standing in the kitchen</span>
+    </div>
+    <blockquote class="line">Taste as you go. Every <mark>sauce</mark>, every <mark>soup</mark>, every <mark>stew</mark>.</blockquote>
+    <ul class="what"><li>Soft glow lights up on “Taste”</li><li>A light band passes on “Every”, on the music beat</li><li>A light burst on “stew”, with a 4% push</li><li>“sauce”, “soup” and “stew” in yellow</li></ul>
+    <dl class="meta">
+      <div><dt>Sound</dt><dd>tick on “Taste” · light whoosh on the band · whoosh on “stew”</dd></div>
+      <div><dt>Music</dt><dd>Keeps going; the light band lands on the beat</dd></div>
+      <div><dt>Reference</dt><dd class="ref"><span class="quiet">No reference: this look was picked from the options</span></dd></div>
+    </dl>
+    
+    <div class="note"><textarea rows="3" placeholder="What should change? For example: make the flare softer."></textarea></div>
+   </div>
+    <div class="actions">
+      <button type="button" class="act ok" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10.5l3.6 3.6 7.4-8.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Approve</span><kbd>A</kbd></button>
+      <button type="button" class="act chg" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.6 3.6l2.8 2.8-8.9 8.9-3.6.8.8-3.6z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span>Change</span><kbd>C</kbd></button>
+      <span class="saved-tick" aria-live="polite"></span>
+    </div>
+  </div>
+</article></section>
+  <section class="wrap" id="wrap">
+    <h2 class="wrap-title">Wrap-up</h2>
+    <p class="wrap-sum" id="wrap-sum"></p>
+    <ul class="wrap-list" id="wrap-list"></ul>
+    <label class="gen-label" for="general">General notes</label>
+    <textarea id="general" rows="3" placeholder="Pace, music, tone: anything about the whole video. Notes on this page itself are welcome too."></textarea>
+    <div class="done-row">
+      <button type="button" class="done" id="done">Done · send my review</button>
+      <p class="done-note" id="done-note"></p>
+    </div>
+  </section>
+</main>
+<div class="newver" id="newver" hidden><span>A new version is ready</span><button type="button" id="newver-go">Open it</button></div>
+<div class="lightbox" id="lightbox" hidden><button type="button" class="lb-prev" aria-label="Previous">‹</button><figure><img alt=""><figcaption></figcaption></figure><button type="button" class="lb-next" aria-label="Next">›</button></div>
+<script src="review.js"></script>
+</body>
+</html>
