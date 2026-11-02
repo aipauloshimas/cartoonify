@@ -258,9 +258,11 @@
       wow: () => `<g>${P(`M${n(x - r * 1.3)} ${n(y - r * .6)} h${n(2.6 * r)} v${n(1.1 * r)} h${n(-1.4 * r)} l${n(-r * .4)} ${n(r * .4)} v${n(-r * .4)} h${n(-r * .8)}z`, F("#fff"), S(ink))}<text x="${x}" y="${n(y + r * .2)}" font-family="Luckiest Guy" font-size="${n(r * .9)}" text-anchor="middle" fill="${neon ? acc : "#3D7DD8"}">WOW</text></g>`,
       cursor: () => P(`M${n(x - r * .4)} ${n(y - r)} l0 ${n(r * 1.6)} l${n(r * .4)} ${n(-r * .35)} l${n(r * .3)} ${n(r * .65)} l${n(r * .28)} ${n(-r * .13)} l${n(-r * .3)} ${n(-r * .62)} l${n(r * .55)} ${n(-r * .05)} z`, F("#fff"), S(ink)),
     };
+    // the wide signs are drawn smaller, so every doodle stays within about 1.35 r of its centre
+    if (name === "onair" || name === "wow") { const r0 = r; r = r * (name === "onair" ? 0.84 : 0.95); const g0 = G[name](); r = r0; return st.kind === "sticker" ? stick(g0) : g0; }
     let g = (G[name] || G.star4)();
-    if (st.kind === "sticker") g = `<g filter="url(#cf-s)">${g.replace(/fill="(?!none)[^"]*"/g, 'fill="#fff"').replace(/stroke="[^"]*"/g, 'stroke="#fff"').replace(/stroke-width="[^"]*"/g, `stroke-width="${N(24 * u)}"`)}${g}</g>`;
-    return g;
+    return st.kind === "sticker" ? stick(g) : g;
+    function stick(g) { return `<g filter="url(#cf-s)">${g.replace(/fill="(?!none)[^"]*"/g, 'fill="#fff"').replace(/stroke="[^"]*"/g, 'stroke="#fff"').replace(/stroke-width="[^"]*"/g, `stroke-width="${N(24 * u)}"`)}${g}</g>`; }
   }
 
   function defs(st, u) {
@@ -333,7 +335,42 @@
   ];
   const typeById = (id) => TYPES.find((t) => t.id === id) || Cartoon.CUSTOM_TYPES.find((t) => t.id === id) || TYPES[2];
 
-  /* the font size that fits the longest line into maxW px (capped at maxSize) */
+  /* The safe zone: where giant type and its doodles must stay. Vertical video uses the Instagram Reels zone (key content
+     in x 60-960 and y 220-1500 of 1080x1920, scaled to the frame); type starts at y 230. Other shapes keep 5% margins. */
+  function safeZone(W, H) {
+    if (H > W) return { x0: Math.round(W * 60 / 1080), y0: Math.round(H * 220 / 1920), x1: Math.round(W * 960 / 1080), y1: Math.round(H * 1500 / 1920), typeTop: Math.round(H * 230 / 1920) };
+    return { x0: Math.round(W * 0.05), y0: Math.round(H * 0.05), x1: Math.round(W * 0.95), y1: Math.round(H * 0.95), typeTop: Math.round(H * 0.06) };
+  }
+
+  /* Browser only, fonts loaded: the real size of a keyword block in px, measured in its own font with every rotated
+     line, letter and burst counted, plus the outline stroke (about size / 9.5) that the layout boxes do not include. */
+  function measure(typeId, lines, size, opt = {}) {
+    const host = document.createElement("div");
+    host.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;width:max-content";
+    host.innerHTML = typeHTML(typeId, lines, size, opt);
+    document.body.appendChild(host);
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const el of [host.firstElementChild, ...host.querySelectorAll("*")]) {
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom);
+    }
+    host.remove();
+    const pad = size / 9.5;
+    return { w: x1 - x0 + pad, h: y1 - y0 + pad };
+  }
+  /* Browser only: the biggest size up to `start` whose measured block fits maxW x maxH. Never sized from the letter count. */
+  function fitSize(typeId, lines, maxW, maxH, start) {
+    let s = Math.max(8, Math.round(start));
+    for (let i = 0; i < 24 && s > 8; i++) {   // stops only on a size that measured inside the box
+      const m = measure(typeId, lines, s), k = Math.min(maxW / m.w, maxH / m.h);
+      if (k >= 1) break;
+      s = Math.max(8, Math.min(s - 1, Math.floor(s * k * 0.98)));
+    }
+    return s;
+  }
+
+  /* a first guess from the letter count (Node, before any browser measures it); the final size always comes from fitSize */
   function fit(typeId, lines, maxW, maxSize) {
     const t = typeById(typeId), longest = Math.max(...lines.map((l) => l.length), 1);
     return Math.round(Math.min(maxSize, maxW / (longest * t.cw)));
@@ -354,7 +391,7 @@
     return Object.entries(FONT_FILES).map(([f, file]) => `@font-face{font-family:"${f}";src:url("${base}${file}");${f === "Cabin Sketch" ? "font-weight:700;" : ""}font-display:block}`).join("\n");
   }
 
-  const Cartoon = { STYLES, TYPES, CUSTOM: [], CUSTOM_TYPES: [], ROOM: null, set, glyph, typeHTML, fit, fontCSS, FONT_FILES, styleById, typeById, roundRect,
+  const Cartoon = { STYLES, TYPES, CUSTOM: [], CUSTOM_TYPES: [], ROOM: null, set, glyph, typeHTML, fit, fitSize, measure, safeZone, fontCSS, FONT_FILES, styleById, typeById, roundRect,
     room(def) { Cartoon.ROOM = def; return def; },
     /* a custom doodle style: Object.assign a copy of a base style with new pal/ink/deco, then Cartoon.addStyle(...) */
     addStyle(s) { Cartoon.CUSTOM.push(s); return s; },

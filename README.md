@@ -6,7 +6,8 @@ A [Claude Code](https://claude.com/claude-code) skill that turns your whole talk
   you (your sofa, your shelf, your plant, your window) as a cartoon set, from the very first frame;
 - **you stay real**, cut out with [Robust Video Matting](https://github.com/PeterL1n/RobustVideoMatting) and outlined
   with a hand-drawn marker line;
-- **only the keywords** pop in as giant type (no full captions), from a transcript of every word;
+- **only the keywords** pop in as giant type (no full captions), from a transcript of every word, each one measured in
+  its real font so it always fits inside the Instagram Reels safe zone;
 - **doodles pop and boil**: every drawn line wobbles 8 times a second, like a hand-drawn animation;
 - **10 doodle styles x 10 type styles**, or describe your own;
 - **no sound added**: your voice stays exactly as recorded.

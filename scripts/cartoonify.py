@@ -11,7 +11,8 @@ with the keywords as giant type. Every step is one command; Claude runs them in 
   python cartoonify.py outline PROJECT               the cutout with a marker outline in the look's ink -> work/person.webm
   python cartoonify.py storyboard PROJECT [--bump] [--change TEXT]...   stills + storyboard.json + the page
   python cartoonify.py build PROJECT                 the HyperFrames project in PROJECT/edit
-  python cartoonify.py render PROJECT                render at the upload's resolution, frame rate and bitrate
+  python cartoonify.py safecheck PROJECT             every keyword and its doodle inside the safe zone? (render runs it first)
+  python cartoonify.py render PROJECT [--force]      render at the upload's resolution, frame rate and bitrate
   python cartoonify.py status PROJECT                what is done and what is next
 
 PROJECT is the folder `init` made (default: <video folder>/<video name>-cartoonify)."""
@@ -206,6 +207,12 @@ def render_html(p, cfg):
 html,body{{margin:0;background:#000;overflow:hidden}}#stage{{position:absolute;left:0;top:0;width:{W}px;height:{H}px;transform-origin:0 0;overflow:hidden}}
 .L{{position:absolute;inset:0}}.L img{{width:{W}px;height:{H}px;display:block}}.kw{{position:absolute;display:flex;align-items:center;justify-content:center}}
 </style></head><body><div id="stage"></div>{scripts}<script>
+// every bundled font must be loaded before anything is measured (a style can mix several, like the collage)
+const fontsIn = async () => {{
+  await Promise.all(Object.keys(Cartoon.FONT_FILES).map(f => document.fonts.load(`${{f === "Cabin Sketch" ? "700 " : ""}}40px "${{f}}"`).catch(() => 0)));
+  await document.fonts.ready;
+}};
+window.fontsIn = fontsIn;
 window.render = async (o) => {{
   window.__ready = false;
   const s = document.getElementById('stage'), u = Math.min({W},{H})/1080, st = Cartoon.styleById(o.style);
@@ -218,15 +225,36 @@ window.render = async (o) => {{
   if (!o.noset) h += `<div class="L">${{Cartoon.set(Cartoon.ROOM, o.style, {{doodles: o.doodles !== false}})}}</div>`;
   if (o.cut && !o.noset) h += `<div class="L"><img src="${{o.cut}}" style="filter:${{outline}}"></div>`;
   if (o.plateOver) h += `<div class="L" style="opacity:.45"><img src="${{o.plateOver}}"></div>`;
+  await fontsIn(o.type);
   for (const k of (o.keywords || [])) {{
-    const [x, y, w, hh] = k.box, size = Cartoon.fit(o.type, k.lines, w * .94, Math.min(hh / (k.lines.length * 1.12), 260 * u) * (k.scale || 1));
-    h += `<div class="kw" style="left:${{x}}px;top:${{y}}px;width:${{w}}px;height:${{hh}}px">${{Cartoon.typeHTML(o.type, k.lines, size)}}</div>`;
-    if (k.glyph) h += `<div class="L"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}"><defs><filter id="cf-s"><feDropShadow dx="${{6*u}}" dy="${{8*u}}" stdDeviation="${{2*u}}" flood-opacity=".25"/></filter></defs>${{Cartoon.glyph(o.style, k.glyph[3], k.glyph[0], k.glyph[1], k.glyph[2], u)}}</svg></div>`;
+    const [x, y, w, hh] = k.box;
+    // the size measured in the real font (layout.json), or measured here for a look-picker thumb
+    const size = (k.size && k.size[o.type]) || Cartoon.fitSize(o.type, k.lines, w, hh, Math.min(hh / (k.lines.length * 1.12), 260 * u) * (k.scale || 1));
+    h += `<div class="kw" data-lines="${{k.lines.join(' / ')}}" style="left:${{x}}px;top:${{y}}px;width:${{w}}px;height:${{hh}}px">${{Cartoon.typeHTML(o.type, k.lines, size)}}</div>`;
+    if (k.glyph) h += `<div class="L"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}"><defs><filter id="cf-s"><feDropShadow dx="${{6*u}}" dy="${{8*u}}" stdDeviation="${{2*u}}" flood-opacity=".25"/></filter></defs><g class="kg" data-lines="${{k.lines.join(' / ')}}">${{Cartoon.glyph(o.style, k.glyph[3], k.glyph[0], k.glyph[1], k.glyph[2], u)}}</g></svg></div>`;
   }}
   s.innerHTML = h;
   await document.fonts.ready;
   await Promise.all([...document.images].map(i => i.decode().catch(() => 0)));
   window.__ready = true;
+}};
+// what leaves the safe zone in the frame drawn now: keywords (every letter, stroke included) and their doodles
+window.safeReport = () => {{
+  const z = Cartoon.safeZone({W}, {H}), s = document.getElementById('stage'), sc = s.getBoundingClientRect().width / {W}, out = [];
+  const box = (els, pad) => {{ let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const e of els) {{ const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
+      x0 = Math.min(x0, r.left); y0 = Math.min(y0, r.top); x1 = Math.max(x1, r.right); y1 = Math.max(y1, r.bottom); }}
+    return [x0 / sc - pad, y0 / sc - pad, x1 / sc + pad, y1 / sc + pad].map(Math.round); }};
+  const test = (what, kind, b, topMin) => {{ const sides = [];
+    if (b[0] < z.x0) sides.push(`left ${{b[0]}} < ${{z.x0}}`); if (b[2] > z.x1) sides.push(`right ${{b[2]}} > ${{z.x1}}`);
+    if (b[1] < topMin) sides.push(`top ${{b[1]}} < ${{topMin}}`); if (b[3] > z.y1) sides.push(`bottom ${{b[3]}} > ${{z.y1}}`);
+    if (sides.length) out.push({{ what, kind, box: b, sides }}); }};
+  for (const kw of s.querySelectorAll('.kw')) {{
+    const t = kw.querySelector('.cf-type'), size = Math.max(0, ...[t, ...t.querySelectorAll('*')].map(e => parseFloat(getComputedStyle(e).fontSize) || 0));
+    test(kw.dataset.lines, 'keyword', box([t, ...t.querySelectorAll('*')], size / 19), z.typeTop - Math.round(size / 19));
+  }}
+  for (const g of s.querySelectorAll('.kg')) test(g.dataset.lines, 'keyword doodle', box([g], 0), z.y0);
+  return {{ zone: z, out }};
 }};
 </script></body></html>"""
     out = p / "work" / "render.html"
@@ -264,7 +292,9 @@ class Shooter:
         self.pg.evaluate("o => window.render(o)", dict(o, scale=sc))
         self.pg.wait_for_function("window.__ready === true", timeout=60000)
         kw = {"type": "jpeg", "quality": 88} if str(path).endswith(".jpg") else {}
-        self.pg.screenshot(path=str(path), **kw)
+        if path:
+            self.pg.screenshot(path=str(path), **kw)
+        return self.pg.evaluate("window.safeReport()")
 
     def close(self):
         self.b.close(); self.pw.stop()
@@ -289,6 +319,38 @@ def cmd_check_room(a):
     print(f"-> {shots / 'compare.jpg'} (the real empty room | your drawing | the drawing over the room)")
 
 
+# ---------- safe zone (the same numbers as Cartoon.safeZone in kit/cartoon.js) ----------
+def safe_zone(W, H):
+    """Instagram Reels safe zone for vertical video (x 60-960, y 220-1500 of 1080x1920, type from y 230), scaled to the
+    frame; 5% margins for other shapes."""
+    if H > W:
+        return {"x0": round(W * 60 / 1080), "y0": round(H * 220 / 1920), "x1": round(W * 960 / 1080), "y1": round(H * 1500 / 1920),
+                "typeTop": round(H * 230 / 1920)}
+    return {"x0": round(W * 0.05), "y0": round(H * 0.05), "x1": round(W * 0.95), "y1": round(H * 0.95), "typeTop": round(H * 0.06)}
+
+
+def ensure_sizes(p, cfg, type_id, sh=None):
+    """Measure every keyword in its real font (stroke included) and store the size that fits its box, per type style,
+    in work/layout.json. Sizes never come from the letter count."""
+    lay_f = p / "work" / "layout.json"
+    lay = json.loads(lay_f.read_text(encoding="utf8"))
+    todo = [k for k in lay if type_id not in (k.get("size") or {})]
+    if todo:
+        own = sh is None
+        sh = sh or Shooter(p, cfg)
+        try:
+            got = sh.pg.evaluate("async ([t, ks, u]) => { await window.fontsIn(t);"
+                                 " return ks.map(k => Cartoon.fitSize(t, k.lines, k.box[2], k.box[3], Math.min(k.box[3] / (k.lines.length * 1.12), 260 * u) * (k.scale || 1))); }",
+                                 [type_id, todo, min(cfg["width"], cfg["height"]) / 1080])
+        finally:
+            if own:
+                sh.close()
+        for k, s_ in zip(todo, got):
+            k.setdefault("size", {})[type_id] = s_
+        lay_f.write_text(json.dumps(lay, indent=1), encoding="utf8")
+    return lay
+
+
 # ---------- layout: where each keyword sits ----------
 def cmd_layout(a):
     import numpy as np
@@ -297,7 +359,10 @@ def cmd_layout(a):
     kws = json.loads((p / "keywords.json").read_text(encoding="utf8"))["keywords"]
     words = json.loads((p / "work" / "words.json").read_text(encoding="utf8"))["words"]
     cut = p / "work" / "cut.webm"
-    pad, gap = round(0.04 * min(W, H)), round(0.03 * min(W, H))
+    gap = round(0.03 * min(W, H))
+    z = safe_zone(W, H)
+    zx0, zy0, zx1, zy1, top = z["x0"], z["y0"], z["x1"], z["y1"], z["typeTop"]
+    zw = zx1 - zx0
     out = []
     for i, k in enumerate(kws):
         t0, t1 = timing(k, kws[i + 1] if i + 1 < len(kws) else None, cfg["duration"])
@@ -314,21 +379,26 @@ def cmd_layout(a):
             x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
         else:
             x0, y0, x1, y1 = W, H, 0, 0
-        cand = {"top": (pad, pad, W - 2 * pad, y0 - gap - pad), "bottom": (pad, y1 + gap, W - 2 * pad, H - y1 - gap - pad),
-                "left": (pad, pad, x0 - gap - pad, H - 2 * pad), "right": (x1 + gap, pad, W - x1 - gap - pad, H - 2 * pad)}
+        # every candidate box lies inside the safe zone, and type never starts above typeTop
+        cand = {"top": (zx0, top, zw, min(y0 - gap, zy1) - top), "bottom": (zx0, max(y1 + gap, top), zw, zy1 - max(y1 + gap, top)),
+                "left": (zx0, top, min(x0 - gap, zx1) - zx0, zy1 - top), "right": (max(x1 + gap, zx0), top, zx1 - max(x1 + gap, zx0), zy1 - top)}
         want = k.get("at")
-        if isinstance(want, list):
-            box, where = want, "custom"
+        if isinstance(want, list):   # placed by hand: still clipped to the safe zone
+            bx0, by0 = max(want[0], zx0), max(want[1], top)
+            box, where = (bx0, by0, min(want[0] + want[2], zx1) - bx0, min(want[1] + want[3], zy1) - by0), "custom"
         else:
             ok = {n: b for n, b in cand.items() if b[2] >= 0.3 * W and b[3] >= 0.11 * H}
             where = want if want in cand and want in ok else (max(ok, key=lambda n: min(ok[n][2], ok[n][3] * 2.5) * min(ok[n][3], 0.35 * H)) if ok else "top")
-            box = ok.get(where) or (pad, round(0.05 * H), W - 2 * pad, round(0.22 * H))   # nothing free: over the head, like a title
+            box = ok.get(where) or (zx0, top, zw, round(0.2 * H))   # nothing free: over the head, like a title
             if box[3] > 0.42 * H:   # a tall free column or band: keep the type near the top of it
-                box = (box[0], box[1] + (round(0.06 * H) if where in ("left", "right") else 0), box[2], round(0.36 * H))
+                box = (box[0], box[1], box[2], round(0.36 * H))
         box = [int(v) for v in box]
         r = round(0.055 * min(W, H))
-        gx = box[0] + box[2] - r * 0.6 if i % 2 == 0 else box[0] + r * 0.6
-        out.append({"i": i, "lines": k["lines"], "scale": float(k.get("scale", 1)), "t": t0, "end": t1, "box": box, "where": where, "glyph": [round(gx), round(box[1] + r * 0.4), r, i]})
+        # the keyword's doodle sits in a corner of its box, wholly inside it (so inside the safe zone)
+        # (inset 1.4 r: arrows, rays and sticker borders reach past the glyph's radius)
+        gx = box[0] + box[2] - 1.4 * r if i % 2 == 0 else box[0] + 1.4 * r
+        out.append({"i": i, "lines": k["lines"], "scale": float(k.get("scale", 1)), "t": t0, "end": t1, "box": box, "where": where,
+                    "glyph": [round(gx), round(box[1] + 1.4 * r), r, i]})
     (p / "work" / "layout.json").write_text(json.dumps(out, indent=1), encoding="utf8")
     for o in out:
         print(f"{o['t']:6.2f}-{o['end']:6.2f}  {' / '.join(o['lines']):34s} {o['where']:7s} box {o['box']}")
@@ -377,11 +447,11 @@ def cmd_storyboard(a):
     sb_dir = p / "storyboard"; fr = sb_dir / "frames"; fr.mkdir(parents=True, exist_ok=True)
     stills = p / "work" / "stills"; stills.mkdir(exist_ok=True)
     words = json.loads((p / "work" / "words.json").read_text(encoding="utf8"))
-    lay = json.loads((p / "work" / "layout.json").read_text(encoding="utf8"))
     meta = json.loads(node_eval("console.log(JSON.stringify({d:Cartoon.STYLES.concat(Cartoon.CUSTOM).map(s=>({id:s.id,name:s.name,blurb:s.blurb})),"
                                 "t:Cartoon.TYPES.concat(Cartoon.CUSTOM_TYPES).map(t=>({id:t.id,name:t.name,blurb:t.blurb}))}))", *custom_files(p)))
     dname = {d["id"]: d["name"] for d in meta["d"]}; tname = {t["id"]: t["name"] for t in meta["t"]}
     d_id, t_id = look(cfg)
+    lay = ensure_sizes(p, cfg, t_id)
     old = json.loads((sb_dir / "storyboard.json").read_text(encoding="utf8")) if (sb_dir / "storyboard.json").exists() else None
     version = (old["version"] + 1) if (old and a.bump) else (old["version"] if old else 1)
     tag = f"v{version}"
@@ -410,7 +480,7 @@ def cmd_storyboard(a):
             moments.append({"t": round(t, 2), "caption": f"On “{spoken.strip('.,!?')}”: {' '.join(k['lines'])} pops in, {k['where'] if k['where'] != 'custom' else 'placed by hand'}",
                             "plan": f"frames/{name}-plan-{tag}.jpg", "take": f"frames/{name}-orig.jpg"})
             shots.append(({"style": d_id, "type": t_id, "take": take.as_uri(), "cut": cutp.as_uri(),
-                           "keywords": [{"lines": o["lines"], "box": o["box"], "glyph": o["glyph"], "scale": o.get("scale", 1)} for o in on]}, fr / f"{name}-plan-{tag}.jpg", take, fr / f"{name}-orig.jpg"))
+                           "keywords": [{"lines": o["lines"], "box": o["box"], "glyph": o["glyph"], "scale": o.get("scale", 1), "size": o.get("size")} for o in on]}, fr / f"{name}-plan-{tag}.jpg", take, fr / f"{name}-orig.jpg", bid))
         for k in kin:
             what.append(f"{k['t']:.2f}-{k['end']:.2f} s: “{' / '.join(k['lines'])}” pops in ({k['where']}), holds, pops out; a {dname.get(d_id, d_id)} doodle springs in beside it")
         if not kin:
@@ -419,7 +489,7 @@ def cmd_storyboard(a):
             take, cutp = frame_pair(t, f"t{t:.2f}")
             moments.append({"t": round(t, 2), "caption": "No keyword here: you talk in front of your drawn room, the doodles boil",
                             "plan": f"frames/{name}-plan-{tag}.jpg", "take": f"frames/{name}-orig.jpg"})
-            shots.append(({"style": d_id, "type": t_id, "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": []}, fr / f"{name}-plan-{tag}.jpg", take, fr / f"{name}-orig.jpg"))
+            shots.append(({"style": d_id, "type": t_id, "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": []}, fr / f"{name}-plan-{tag}.jpg", take, fr / f"{name}-orig.jpg", bid))
             what.append("No keyword in this beat: only the room and you")
         if len(kin) > 3:
             what.append(f"{len(kin) - 3} more keyword(s) in this beat are listed above but not drawn as frames")
@@ -436,20 +506,29 @@ def cmd_storyboard(a):
     # look picker thumbs: the 10 doodle styles on your own frame, the 10 type styles on the current doodle style
     t_look = lay[0]["t"] + 0.3 if lay else D / 2
     take, cutp = frame_pair(t_look, f"t{t_look:.2f}")
-    sample = [{"lines": lay[0]["lines"], "box": lay[0]["box"], "glyph": lay[0]["glyph"]}] if lay else []
+    sample = [{"lines": lay[0]["lines"], "box": lay[0]["box"], "glyph": lay[0]["glyph"], "size": lay[0].get("size")}] if lay else []
     for d in meta["d"]:
-        shots.append(({"style": d["id"], "type": t_id, "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": []}, fr / f"look-{d['id']}-{tag}.jpg", None, None))
+        shots.append(({"style": d["id"], "type": t_id, "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": []}, fr / f"look-{d['id']}-{tag}.jpg", None, None, None))
     for t in meta["t"]:
-        shots.append(({"style": d_id, "type": t["id"], "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": sample}, fr / f"look-{t['id']}-{tag}.jpg", None, None))
+        shots.append(({"style": d_id, "type": t["id"], "take": take.as_uri(), "cut": cutp.as_uri(), "keywords": sample}, fr / f"look-{t['id']}-{tag}.jpg", None, None, None))
 
+    unsafe = {}   # beat id -> what leaves the safe zone
     sh = Shooter(p, cfg)
     try:
-        for o, path, take, orig in shots:
-            sh.shoot(o, path, 720 if not path.name.startswith("look-") else 360)
+        for o, path, take, orig, bid in shots:
+            got = sh.shoot(o, path, 720 if not path.name.startswith("look-") else 360)
+            if bid:
+                for v in got["out"]:
+                    unsafe.setdefault(bid, []).append(f"“{v['what']}” ({v['kind']}): {', '.join(v['sides'])}")
             if take is not None and not orig.exists():
                 ff("-i", take, "-vf", "scale=720:-2", "-q:v", "3", orig)
     finally:
         sh.close()
+    zone = safe_zone(W, H)
+    for b in beats:
+        if b["id"] in unsafe:
+            b["alerts"].append(f"Leaves the safe zone (x {zone['x0']}-{zone['x1']}, y {zone['y0']}-{zone['y1']})")
+            b["what"].extend(f"Safe zone: {u_}" for u_ in unsafe[b["id"]])
 
     rec = cfg.get("recommended") or {}
     changes = list(a.change or [])
@@ -458,7 +537,8 @@ def cmd_storyboard(a):
         if (ol.get("doodle"), ol.get("type")) != (d_id, t_id):
             changes.insert(0, f"New look: {dname.get(d_id, d_id)} + {tname.get(t_id, t_id)} (was {dname.get(ol.get('doodle'), ol.get('doodle'))} + {tname.get(ol.get('type'), ol.get('type'))})")
     sb = {"project": Path(video).stem, "title": words["segments"][0]["text"] if words["segments"] else "Cartoonify",
-          "meta": f"{len(beats)} beats · {len(lay)} keywords · look: {dname.get(d_id, d_id)} + {tname.get(t_id, t_id)} · no sound added",
+          "meta": f"{len(beats)} beats · {len(lay)} keywords · look: {dname.get(d_id, d_id)} + {tname.get(t_id, t_id)} · no sound added · "
+                  + (f"safe zone: {sum(len(v) for v in unsafe.values())} problem(s), see Checks" if unsafe else "safe zone checked: every keyword inside"),
           "kinds": {"th": "you, cartoonified"}, "version": version, "length": round(D, 2), "changes": changes, "needs": [], "music": [],
           "look": {"intro": f"Each option is your own room, redrawn, at {tc(t_look)}. Text styles are shown on the doodle style the beats use now.",
                    "doodles": [dict(d, thumb=f"frames/look-{d['id']}-{tag}.jpg") for d in meta["d"]],
@@ -510,11 +590,11 @@ def cmd_build(a):
     shutil.copy(src, e / "assets" / "person.webm")
     if cfg.get("audio"):
         ff("-i", cfg["video"], "-vn", "-c:a", "copy" if cfg["audio"] == "aac" else "aac", *([] if cfg["audio"] == "aac" else ["-b:a", "256k"]), e / "assets" / "voice.m4a")
-    lay = json.loads((p / "work" / "layout.json").read_text(encoding="utf8"))
+    lay = ensure_sizes(p, cfg, t_id)
     data = json.loads(node_eval(f"""
 const u = Math.min({W},{H})/1080, L = {json.dumps(lay)};
 const set = Cartoon.set(Cartoon.ROOM, {json.dumps(d_id)}, {{ doodles: false }}), doodles = Cartoon.set(Cartoon.ROOM, {json.dumps(d_id)}, {{ only: "doodles" }});
-const kws = L.map(k => {{ const [x,y,w,h] = k.box; const size = Cartoon.fit({json.dumps(t_id)}, k.lines, w*.94, Math.min(h/(k.lines.length*1.12), 260*u)*(k.scale||1));
+const kws = L.map(k => {{ const size = k.size[{json.dumps(t_id)}];   // measured in the real font by ensure_sizes
   return {{ html: Cartoon.typeHTML({json.dumps(t_id)}, k.lines, size), glyph: Cartoon.glyph({json.dumps(d_id)}, k.glyph[3], k.glyph[0], k.glyph[1], k.glyph[2], u).replace(/url\\(#cf-s\\)/g,'url(#ty-s)') }}; }});
 console.log(JSON.stringify({{ set, doodles, kws, spots: (Cartoon.ROOM.spots||[]).length }}));""", *custom_files(p), p / "room.js"))
     bake_set(data["set"], W, H, e / "assets")
@@ -650,9 +730,52 @@ console.log(JSON.stringify({{ set, doodles, kws, spots: (Cartoon.ROOM.spots||[])
     print(f"check:  {NPX} hyperframes check  (in {e})\nreview: {NPX} hyperframes play  (in {e}), the HyperFrames player")
 
 
+# ---------- safe-zone check (the lint step before a render) ----------
+def safecheck(p, cfg):
+    """Draw every keyword moment exactly as the edit lays it out and list what leaves the safe zone: keywords (every
+    letter, stroke included) and their doodles fail; wall doodles outside it only warn. Returns (failures, warnings)."""
+    d_id, t_id = look(cfg)
+    z = safe_zone(cfg["width"], cfg["height"])
+    sh = Shooter(p, cfg)
+    fails = []
+    try:
+        lay = ensure_sizes(p, cfg, t_id, sh)
+        for k in lay:
+            t = (k["t"] + k["end"]) / 2
+            on = [o for o in lay if o["t"] <= t < o["end"]]
+            r = sh.shoot({"style": d_id, "type": t_id, "noset": True, "keywords": [{"lines": o["lines"], "box": o["box"], "glyph": o["glyph"],
+                          "scale": o.get("scale", 1), "size": o.get("size")} for o in on]}, None, 540)
+            fails += [f"{t:6.2f}s  “{v['what']}” {v['kind']}: {', '.join(v['sides'])}" for v in r["out"]]
+    finally:
+        sh.close()
+    spots = json.loads(node_eval("console.log(JSON.stringify(Cartoon.ROOM.spots||[]))", p / "room.js")) if (p / "room.js").exists() else []
+    warns = [f"wall doodle {i} at ({x}, {y}) r {r_} reaches outside the safe zone" for i, (x, y, r_) in enumerate(spots)
+             if x - r_ < z["x0"] or x + r_ > z["x1"] or y - r_ < z["y0"] or y + r_ > z["y1"]]
+    return sorted(set(fails)), warns
+
+
+def cmd_safecheck(a):
+    p, cfg = load(a.project)
+    z = safe_zone(cfg["width"], cfg["height"])
+    fails, warns = safecheck(p, cfg)
+    print(f"safe zone x {z['x0']}-{z['x1']}, y {z['y0']}-{z['y1']} (type from y {z['typeTop']})")
+    for w in warns:
+        print("warn ", w)
+    for f_ in fails:
+        print("FAIL ", f_)
+    print("OK: every keyword and its doodle is inside" if not fails else
+          f"{len(fails)} problem(s): give the keyword a smaller scale or another \"at\", then layout and build")
+    sys.exit(1 if fails else 0)
+
+
 # ---------- render ----------
 def cmd_render(a):
     p, cfg = load(a.project)
+    fails, warns = safecheck(p, cfg)
+    for w in warns:
+        print("safe zone warn:", w)
+    if fails and not a.force:
+        sys.exit("safe zone: not rendering, these leave it:\n  " + "\n  ".join(fails) + "\n(fix them, or render anyway with --force)")
     e = p / "edit"; (e / "renders").mkdir(exist_ok=True)
     mbps = max(1, math.ceil(cfg["bitrate"] / 1e6)) if cfg.get("bitrate") else 20
     out = e / "renders" / f"{Path(cfg['video']).stem}-cartoonify.mp4"
@@ -699,8 +822,9 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("init"); s.add_argument("video"); s.add_argument("--project")
     s = sub.add_parser("transcribe"); s.add_argument("project"); s.add_argument("--model", default="small"); s.add_argument("--language", default=None)
-    for n in ("words", "plate", "layout", "outline", "build", "render", "status"):
+    for n in ("words", "plate", "layout", "outline", "build", "safecheck", "status"):
         sub.add_parser(n).add_argument("project")
+    s = sub.add_parser("render"); s.add_argument("project"); s.add_argument("--force", action="store_true", help="render even if something leaves the safe zone")
     s = sub.add_parser("cutout"); s.add_argument("project"); s.add_argument("--downsample", type=float, default=0.75)
     s = sub.add_parser("look"); s.add_argument("project"); s.add_argument("--doodle"); s.add_argument("--type")
     s = sub.add_parser("check-room"); s.add_argument("project"); s.add_argument("--style")

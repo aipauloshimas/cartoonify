@@ -24,6 +24,10 @@ the render matches the upload's resolution, frame rate and bitrate.
   remove-background` or keying: they chew hands and hair.
 - **No sound**: no music, no effects. The voice stays.
 - **Keywords only**: never full captions. A keyword is 1 to 3 words that carry the line; about one every 2 to 4 seconds.
+- **Giant words stay in the safe zone.** On vertical video that is the Instagram Reels zone: x 60 to 960 and y 220 to
+  1500 of a 1080x1920 frame (scaled to the video), type starting at y 230; other shapes keep 5% margins. `layout` only
+  places keywords inside it; every keyword is sized by measuring it in its real font, stroke included, never from its
+  letter count; the storyboard's Checks and `safecheck` (run by `render`) flag anything that leaves it.
 - **Never change the user's video file.** Everything is written into the project folder.
 - Install nothing without the user's OK (`doctor.py` asks; in Claude Code you ask in the chat, then pass `--yes`).
 
@@ -63,7 +67,8 @@ the framing) and the plan. Then start, in parallel:
 - `lines`: 1 or 2 lines, short (up to about 12 letters a line), fix what Whisper misheard (it writes "clawed" for
   Claude), keep the speaker's words.
 - `words`: the spoken words (they get highlighted in the storyboard's line).
-- Optional: `at` = `top` | `bottom` | `left` | `right` | `[x, y, w, h]` in video pixels; `scale` (bigger or smaller).
+- Optional: `at` = `top` | `bottom` | `left` | `right` | `[x, y, w, h]` in video pixels (clipped to the safe zone);
+  `scale` (bigger or smaller; a keyword never grows past its box).
 - Pick the words a viewer should remember: the hook's punch, the product, the numbers, the payoff. Skip filler.
 
 ### 3. Redraw the room
@@ -103,7 +108,8 @@ Read the waiter's output (it prints the approvals, the notes and the look).
 
 ### 6. Build (on go: Done with every beat approved, or "go" in the chat)
 1. `CF outline P` (if the look changed since the last outline), then `CF build P`.
-2. In `P/edit`: `npx hyperframes check`. Fix errors; `line_unread` on a short last keyword is fine to keep.
+2. In `P/edit`: `npx hyperframes check`, and `CF safecheck P` (every keyword and its doodle inside the safe zone). Fix
+   errors; `line_unread` on a short last keyword is fine to keep.
 3. Look first: `npx hyperframes snapshot --at <a few times> --no-end -o ../work/snap` in `P/edit`, and 1:1 crops of the
    hands and the hair edges over the drawn room (the outline must hug the person, no light halo, no missing fingers).
 4. Review in the HyperFrames player: run `npx hyperframes play --no-open --port <free port>` in `P/edit` in the
@@ -113,7 +119,8 @@ Read the waiter's output (it prints the approvals, the notes and the look).
    New or reordered keywords go back through the storyboard.
 
 ### 7. Render (only after the user says "render")
-`CF render P` in the background. It renders with the HyperFrames CLI at the upload's size, the upload's frame rate and
+`CF render P` in the background. It runs `safecheck` first and refuses to render while a keyword or its doodle leaves
+the safe zone (fix it; `--force` only if the user asks). It renders with the HyperFrames CLI at the upload's size, the upload's frame rate and
 at least its bitrate, then prints both side by side (`matches_upload`). Expect roughly 30 to 50 times the video's length
 on a laptop at 1080x1920 (7 s took about 5 minutes). Give the user the file path.
 
@@ -134,4 +141,6 @@ on a laptop at 1080x1920 (7 s took about 5 minutes). Give the user the file path
   for hands only in frame; the default 0.75 suits a framed talking head.
 - The plate shows magenta (a part of the room never seen behind the person): draw what is most likely there.
 - A keyword covers the face: give it `"at"` (another side) or a smaller `scale`, then `layout` again.
+- `safecheck` fails: the message names the keyword, the side and by how much. Lower its `scale` or move it with `at`,
+  then `layout`, `build` (the storyboard shows the same problem in its Checks).
 - Type unreadable on a style (light type on a light wall): pick another type style or suggest one in the chat.
