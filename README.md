@@ -56,8 +56,8 @@ missing; it asks first). Whisper downloads its speech model (about 460 MB) on th
 ## Speed
 
 Everything runs on the CPU. On a laptop, the cutout takes about 4 seconds per frame at its sharpest setting (a
-faster, slightly softer one is offered for long videos), and the render about 50 times the video's length at
-1080x1920. A 7-second test took about 15 minutes to cut out and 6 minutes to render.
+faster, slightly softer one is offered for long videos), and the render about 30 to 50 times the video's length at
+1080x1920. A 7-second test took about 15 minutes to cut out and 5 minutes to render.
 
 ## What is inside
 

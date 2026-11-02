@@ -114,8 +114,8 @@ Read the waiter's output (it prints the approvals, the notes and the look).
 
 ### 7. Render (only after the user says "render")
 `CF render P` in the background. It renders with the HyperFrames CLI at the upload's size, the upload's frame rate and
-at least its bitrate, then prints both side by side (`matches_upload`). Expect roughly 40 to 60 times the video's length
-on a laptop at 1080x1920 (7 s took about 6 minutes). Give the user the file path.
+at least its bitrate, then prints both side by side (`matches_upload`). Expect roughly 30 to 50 times the video's length
+on a laptop at 1080x1920 (7 s took about 5 minutes). Give the user the file path.
 
 ## Files in a project
 
